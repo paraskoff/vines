@@ -346,6 +346,47 @@ body.hide-left-sidebar.hide-right-sidebar .site-container {{ grid-template-colum
 .sidebar-right {{ border-left: 1px solid var(--border-color); padding-left: 1.2rem; }}
 .main-content {{ min-width: 0; }}
 
+/* 1. Strictly bound the sidebar container */
+.sidebar-left, nav, #sidebar-left {{
+  width: 260px;
+  min-width: 260px;
+  max-width: 260px;
+  box-sizing: border-box;
+  overflow-x: hidden !important; /* Forces strict horizontal clipping */
+  overflow-y: auto;
+}}
+
+/* 2. Reset width calculations on nested tree containers */
+.sidebar-left ul, 
+.sidebar-left ol, 
+.sidebar-left div {{
+  box-sizing: border-box;
+  max-width: 100%;
+}}
+
+/* 3. Fix Flexbox items (CRITICAL for flex-based tree items) */
+.sidebar-left li, 
+.sidebar-left .nav-item, 
+.sidebar-left .tree-node {{
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0; /* OVERRIDES Flexbox 'min-width: auto' to allow text shrinking */
+  box-sizing: border-box;
+}}
+
+/* 4. Force text truncation on the anchor/label itself */
+.sidebar-left a, 
+.sidebar-left .node-title, 
+.sidebar-left span {{
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;               /* Mandatory for flex text truncation */
+  white-space: nowrap;        /* Keeps text on a single line */
+  overflow: hidden;           /* Hides text that overflows */
+  text-overflow: ellipsis;    /* Renders '...' */
+}}
+
 .top-controls {{
     display: flex;
     align-items: center;
