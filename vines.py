@@ -990,6 +990,11 @@ class WikiBuilder:
             if md_path.stem.lower() in ("index", "readme") or str(rel_path) in ("index.md", "README.md"):
                 self.has_custom_index = True
 
+            # Calculate word count and estimated reading time (200 WPM)
+            word_count = len(re.findall(r'\w+', body))
+            read_minutes = max(1, round(word_count / 200)) if word_count > 0 else 1
+            reading_time_str = f"{read_minutes} min read"
+
             note_info = {
                 "key": str(rel_path).replace("\\", "/"),
                 "input_path": md_path,
@@ -1004,6 +1009,8 @@ class WikiBuilder:
                 "snippet": plain_snippet,
                 "created": metadata.get("created", ""),
                 "updated": metadata.get("updated", ""),
+                "reading_time": reading_time_str,
+                "word_count": word_count,
                 "pinned": bool(metadata.get("pinned") is True or str(metadata.get("pinned")).lower() == "true" or metadata.get("featured") is True),
                 "description": metadata.get("description", f"Note regarding {title}"),
             }
@@ -1230,7 +1237,15 @@ class WikiBuilder:
             status_key = str(meta.get("status", "")).lower()
             status_badge = f'<span class="status-badge {STATUS_BADGES[status_key][1]}">{STATUS_BADGES[status_key][0]}</span>' if status_key in STATUS_BADGES else ""
             tags_html = "".join(f'<a href="{root_offset}tags.html#{t}" class="tag-badge">#{t}</a>' for t in note["tags"])
+            
+            # Combine Date and Reading Time metadata
             date_str = note["updated"] or note["created"]
+            meta_items = []
+            if date_str:
+                meta_items.append(f"Updated: {date_str}")
+            meta_items.append(f"&#9201;&#65039; {note['reading_time']}")
+            
+            date_meta = f'<p style="font-size:0.85rem; opacity:0.7;">{" &bull; ".join(meta_items)}</p>'
 
             source_id = str(note["out_rel_path"]).replace("\\", "/")
             page_html = HTML_TEMPLATE.format(
@@ -1245,7 +1260,7 @@ class WikiBuilder:
                 breadcrumb_html=self.generate_breadcrumbs(note, home_href),
                 status_badge=status_badge,
                 tags_html=tags_html,
-                date_meta=f'<p style="font-size:0.85rem; opacity:0.7;">Updated: {date_str}</p>' if date_str else "",
+                date_meta=date_meta,
                 toc_content=note["toc_html"] if meta.get("toc", True) else "<p style='font-size:0.85rem; opacity:0.6;'>ToC Disabled</p>",
                 content=resolved_bodies[source_id],
                 backlinks_section=self.generate_backlinks_html(note, self.backlink_map.get(source_id, []), id_to_note, root_offset),
