@@ -569,7 +569,7 @@ li {{
 
 
 def generate_app_js(search_index: list, graph_data: dict) -> str:
-    """Generate JavaScript for controls, search, hover previews, lightboxes, and graph."""
+    """Generate JavaScript for controls, search, hover previews, lightboxes, and local neighborhood graph."""
     search_json = json.dumps(search_index)
     graph_json = json.dumps(graph_data)
 
@@ -705,9 +705,57 @@ function initGraph() {{
     const width = canvas.width = canvas.parentElement.clientWidth;
     const height = canvas.height = 260;
 
-    const nodes = GRAPH_DATA.nodes.map(n => ({{ ...n, x: Math.random() * (width - 80) + 40, y: Math.random() * (height - 80) + 40, vx: 0, vy: 0 }}));
+    let currentPath = window.location.pathname.replace(/\\\\/g, '/');
+    if (currentPath.endsWith('/') || !currentPath.split('/').pop().includes('.')) {{
+        if (!currentPath.endsWith('/')) currentPath += '/';
+        currentPath += 'index.html';
+    }}
+
+    const currentNote = GRAPH_DATA.nodes.find(n => currentPath.endsWith(n.id));
+
+    let rawNodes = GRAPH_DATA.nodes;
+    let rawLinks = GRAPH_DATA.links;
+    let centerId = null;
+
+    if (currentNote) {{
+        centerId = currentNote.id;
+        const neighborIds = new Set([centerId]);
+        rawLinks.forEach(l => {{
+            if (l.source === centerId) neighborIds.add(l.target);
+            if (l.target === centerId) neighborIds.add(l.source);
+        }});
+        rawNodes = GRAPH_DATA.nodes.filter(n => neighborIds.has(n.id));
+        rawLinks = GRAPH_DATA.links.filter(l => neighborIds.has(l.source) && neighborIds.has(l.target));
+    }}
+
+    const currentDepth = currentNote ? currentNote.id.split('/').slice(0, -1).length : 0;
+    const rootOffset = '../'.repeat(currentDepth);
+
+    const nodes = rawNodes.map(n => ({{
+        ...n,
+        x: Math.random() * (width - 80) + 40,
+        y: Math.random() * (height - 80) + 40,
+        vx: 0,
+        vy: 0,
+        isCenter: n.id === centerId
+    }}));
+
     const nodeMap = new Map(nodes.map(n => [n.id, n]));
-    const links = GRAPH_DATA.links.map(l => ({{ source: nodeMap.get(l.source), target: nodeMap.get(l.target) }})).filter(l => l.source && l.target);
+    const links = rawLinks.map(l => ({{ source: nodeMap.get(l.source), target: nodeMap.get(l.target) }})).filter(l => l.source && l.target);
+
+    if (centerId && nodeMap.has(centerId)) {{
+        const cNode = nodeMap.get(centerId);
+        cNode.x = width / 2;
+        cNode.y = height / 2;
+
+        const otherNodes = nodes.filter(n => !n.isCenter);
+        otherNodes.forEach((n, idx) => {{
+            const angle = (idx / Math.max(1, otherNodes.length)) * Math.PI * 2;
+            const radius = Math.min(width, height) * 0.3;
+            n.x = width / 2 + Math.cos(angle) * radius;
+            n.y = height / 2 + Math.sin(angle) * radius;
+        }});
+    }}
 
     function stepPhysics() {{
         for (let i = 0; i < nodes.length; i++) {{
@@ -731,8 +779,13 @@ function initGraph() {{
             l.target.vx -= dx * force; l.target.vy -= dy * force;
         }});
         nodes.forEach(n => {{
-            n.vx += (width / 2 - n.x) * 0.002;
-            n.vy += (height / 2 - n.y) * 0.002;
+            if (n.isCenter) {{
+                n.vx += (width / 2 - n.x) * 0.1;
+                n.vy += (height / 2 - n.y) * 0.1;
+            }} else {{
+                n.vx += (width / 2 - n.x) * 0.002;
+                n.vy += (height / 2 - n.y) * 0.002;
+            }}
             n.vx *= 0.85; n.vy *= 0.85;
             n.x = Math.max(20, Math.min(width - 20, n.x + n.vx));
             n.y = Math.max(20, Math.min(height - 20, n.y + n.vy));
@@ -741,17 +794,56 @@ function initGraph() {{
 
     function draw() {{
         ctx.clearRect(0, 0, width, height);
-        ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--border-color').trim() || '#ccc';
-        links.forEach(l => {{ ctx.beginPath(); ctx.moveTo(l.source.x, l.source.y); ctx.lineTo(l.target.x, l.target.y); ctx.stroke(); }});
-        const accent = getComputedStyle(document.body).getPropertyValue('--accent-color').trim() || '#7c3aed';
+        const borderColor = getComputedStyle(document.body).getPropertyValue('--border-color').trim() || '#ccc';
+        const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim() || '#7c3aed';
+        const textColor = getComputedStyle(document.body).getPropertyValue('--text-color').trim() || '#000';
+        const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface-color').trim() || '#fff';
+
+        // Pass 1: Draw Link Lines
+        links.forEach(l => {{
+            ctx.beginPath();
+            ctx.strokeStyle = (l.source.isCenter || l.target.isCenter) ? accentColor : borderColor;
+            ctx.lineWidth = (l.source.isCenter || l.target.isCenter) ? 1.5 : 1;
+            ctx.moveTo(l.source.x, l.source.y);
+            ctx.lineTo(l.target.x, l.target.y);
+            ctx.stroke();
+        }});
+
+        // Pass 2: Draw Node Circles
         nodes.forEach(n => {{
-            ctx.fillStyle = accent;
-            ctx.beginPath(); ctx.arc(n.x, n.y, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-color').trim() || '#000';
-            ctx.font = '11px sans-serif';
-            ctx.fillText(n.title, n.x + 9, n.y + 4);
+            ctx.beginPath();
+            const radius = n.isCenter ? 8 : 5;
+            ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = accentColor;
+            ctx.fill();
+
+            if (n.isCenter) {{
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = textColor;
+                ctx.stroke();
+            }}
+        }});
+
+        // Pass 3: Draw Text Labels with Background Masking Halo
+        nodes.forEach(n => {{
+            const labelX = n.x + (n.isCenter ? 12 : 9);
+            const labelY = n.y + 4;
+
+            ctx.font = n.isCenter ? 'bold 12px sans-serif' : '11px sans-serif';
+
+            // Background cutout halo (masks underlying edges)
+            ctx.strokeStyle = surfaceColor;
+            ctx.lineWidth = 4;
+            ctx.lineJoin = 'round';
+            ctx.miterLimit = 2;
+            ctx.strokeText(n.title, labelX, labelY);
+
+            // Foreground text
+            ctx.fillStyle = textColor;
+            ctx.fillText(n.title, labelX, labelY);
         }});
     }}
+
     let frames = 0;
     function animate() {{
         if (frames < 120) {{ stepPhysics(); draw(); frames++; requestAnimationFrame(animate); }}
@@ -761,8 +853,11 @@ function initGraph() {{
 
     canvas.addEventListener('click', (e) => {{
         const rect = canvas.getBoundingClientRect();
-        const hit = nodes.find(n => Math.hypot(n.x - (e.clientX - rect.left), n.y - (e.clientY - rect.top)) < 10);
-        if (hit && hit.url) window.location.href = hit.url;
+        const hit = nodes.find(n => Math.hypot(n.x - (e.clientX - rect.left), n.y - (e.clientY - rect.top)) < 12);
+        if (hit) {{
+            const targetUrl = rootOffset + hit.id;
+            window.location.href = targetUrl;
+        }}
     }});
 }}
 
@@ -783,9 +878,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <link rel="stylesheet" href="{root_offset}style.css">
     {custom_css_link}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body);"></script>
+        onload="renderMathInElement(document.body, {{
+            delimiters: [
+                {{left: '$$', right: '$$', display: true}},
+                {{left: '$', right: '$', display: false}},
+                {{left: '\\\\(', right: '\\\\)', display: false}},
+                {{left: '\\\\[', right: '\\\\]', display: true}}
+            ],
+            throwOnError: false
+        }});"></script>
 </head>
 <body class="{body_classes}">
     <div class="site-container">
@@ -841,7 +944,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </body>
 </html>
 """
-
 
 # ==============================================================================
 # 4. SITE BUILD ENGINE
