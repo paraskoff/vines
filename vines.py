@@ -471,6 +471,20 @@ body[data-theme="dark"] .admonition {{ background: rgba(255,255,255,0.04); }}
 .admonition.danger, .admonition.error {{ border-left-color: #ef4444; }}
 .admonition.danger .admonition-title, .admonition.error .admonition-title {{ color: #ef4444; }}
 
+.dashboard-grid {{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}}
+
+.dashboard-card {{
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.2rem;
+}}
+
 .article-body img {{ max-width: 100%; height: auto; border-radius: 6px; cursor: zoom-in; margin: 1rem 0; }}
 .obsidian-embed-pdf {{ width: 100%; height: 600px; border: 1px solid var(--border-color); border-radius: 6px; }}
 
