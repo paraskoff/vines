@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <meta name="description" content="{description}">
+    <link rel="stylesheet" href="{root_offset}style.css">
+    {custom_css_link}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+        });"></script>
+</head>
+<body class="{body_classes}">
+    <div class="site-container">
+        <aside class="sidebar-left">
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="&#128269; Search notes...">
+                <div id="search-results" class="search-results"></div>
+            </div>
+            <div class="nav-section">
+                <h3>Navigation</h3>
+                <ul class="nav-list">
+                    <li><a href="{home_href}">&#127968; Home</a></li>
+                    <li><a href="{root_offset}tags.html">&#127991;&#65039; Tag Browser</a></li>
+                </ul>
+            </div>
+            {pinned_section}
+            <div class="nav-section">
+                <h3>Vault Hierarchy</h3>
+                {folder_tree_html}
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="top-controls">
+                <button id="toggle-left-btn" class="control-btn" title="Toggle Sidebar">&#9776; Sidebar</button>
+                <button id="theme-toggle" class="control-btn" title="Toggle Theme">&#127763; Theme</button>
+                <button id="toggle-right-btn" class="control-btn" title="Toggle Page ToC">&#128209; ToC</button>
+            </div>
+            <nav class="breadcrumb">{breadcrumb_html}</nav>
+            <header>
+                {status_badge}
+                <h1>{title}</h1>
+                {tags_html}
+                {date_meta}
+            </header>
+            <hr style="margin: 1rem 0; border: 0; border-top: 1px solid var(--border-color);">
+            <article class="article-body">
+                {content}
+            </article>
+            <section class="graph-container">
+                <h3 style="font-size: 1rem; margin-bottom: 0.8rem;">&#128376;&#65039; Knowledge Graph</h3>
+                <canvas id="graph-canvas" class="graph-canvas"></canvas>
+            </section>
+        </main>
+        <aside class="sidebar-right">
+            <div class="nav-section">
+                <h3>On This Page</h3>
+                {toc_content}
+            </div>
+            {backlinks_section}
+        </aside>
+    </div>
+    <script src="{root_offset}app.js"></script>
+</body>
+</html>

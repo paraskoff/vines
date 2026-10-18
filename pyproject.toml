@@ -1,0 +1,40 @@
+# Minimal, deliberately. This exists so a consumer can declare vines as a
+# real dependency instead of locating it with $VINES_HOME and a relative
+# path — nothing more.
+
+# Versioning proper (a `__version__`, a `--version` flag, and the
+# PROJECT_REQUIRES_VINES compatibility gate) is a separate piece of work.
+# Until it lands there is no version to check, so `version` here is a
+# placeholder and consumers must not depend on it.
+#
+# Installation stays OPTIONAL. This only adds the option of
+# `pip install -e ../vines`.
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vines"
+version = "1.0.0"
+description = "A zero-dependency (with optional enhancements) static digital garden and wiki builder"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Ivan Paraskov" }]
+# Matches its only consumer. Nothing here needs 3.12 specifically, but there is
+# no reason to claim support that is never exercised.
+requires-python = ">=3.12"
+dependencies = [
+    "pyyaml",
+    "markdown",
+    "watchdog",
+]
+
+[project.scripts]
+vines = "vines.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vines = ["views/static/*"]

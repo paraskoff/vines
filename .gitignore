@@ -1,2 +1,26 @@
+# Byte-compiled / optimized files
+*.py[cod]
+*$py.class
+
+# Ccache & Build artifacts
+build/
 dist/
-*.pyc
+.eggs/
+*.egg-info/
+
+# Virtual Environments & IDEs
+.venv/
+.idea/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment / Secrets
+.env
+.env.local
+
+# OS Metadata
+.DS_Store
+Thumbs.db
