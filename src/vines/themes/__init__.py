@@ -1,20 +1,21 @@
-import json
+import importlib
 from pathlib import Path
 
 THEMES_DIR = Path(__file__).parent
 
 
 def load_theme(theme_name: str) -> dict:
-    """Load theme configuration by name from the themes directory."""
-    theme_path = THEMES_DIR / f"{theme_name.lower()}.json"
-    if not theme_path.exists():
-        # Fallback to solarized if theme doesn't exist
-        theme_path = THEMES_DIR / "solarized.json"
-
-    with open(theme_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    """Load theme configuration by importing the theme Python module."""
+    theme_name = theme_name.lower()
+    try:
+        module = importlib.import_module(f".{theme_name}", package="vines.themes")
+        return getattr(module, "THEME_CONFIG", {})
+    except (ImportError, AttributeError):
+        # Fallback to solarized if module doesn't exist
+        module = importlib.import_module(".solarized", package="vines.themes")
+        return getattr(module, "THEME_CONFIG", {})
 
 
 def list_available_themes() -> list[str]:
     """Return a list of available theme names."""
-    return [p.stem for p in THEMES_DIR.glob("*.json")]
+    return [p.stem for p in THEMES_DIR.glob("*.py") if p.stem != "__init__"]
