@@ -24,9 +24,10 @@ from vines.views.templates import (
 
 
 class WikiBuilder:
-    def __init__(self, input_dir: Path, output_dir: Path):
+    def __init__(self, input_dir: Path, output_dir: Path, theme_name: str = "default"):
         self.input_dir = input_dir.resolve()
         self.output_dir = output_dir.resolve()
+        self.theme_name = theme_name
         self.data = SiteData()
 
     def scan_notes(self):
@@ -203,7 +204,7 @@ class WikiBuilder:
             shutil.copy(custom_css_src, self.output_dir / "custom.css")
 
         with open(self.output_dir / "style.css", "w", encoding="utf-8") as f:
-            f.write(generate_base_css())
+            f.write(generate_base_css(self.theme_name))
 
         pinned_notes = [n for n in self.data.notes.values() if n.pinned]
         pinned_html = ""

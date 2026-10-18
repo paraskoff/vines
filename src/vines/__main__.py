@@ -21,11 +21,12 @@ def main():
     parser.add_argument("--serve", "-s", action="store_true", help="Start development HTTP server with watch mode")
     parser.add_argument("--watch", "-w", action="store_true", help="Watch notes directory for continuous auto-rebuilds")
     parser.add_argument("--port", "-p", type=int, default=8000, help="Dev server port")
+    parser.add_argument("--theme", "-t", default="default", help="Theme name (e.g., solarized, basic)")
     args = parser.parse_args()
 
     input_path = Path(args.input)
     output_path = Path(args.output)
-    builder = WikiBuilder(input_path, output_path)
+    builder = WikiBuilder(Path(args.input), Path(args.output), theme_name=args.theme)
     builder.build()
 
     should_watch = args.watch or args.serve
