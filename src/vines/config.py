@@ -1,19 +1,4 @@
-SOLARIZED_THEME_CONFIG = {
-    "font_family": '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    "accent_color": "#268bd2",
-    "accent_hover": "#2aa198",
-    "link_color": "#268bd2",
-    "bg_dark": "#002b36",
-    "surface_dark": "#073642",
-    "text_dark": "#839496",
-    "border_dark": "#586e75",
-    "bg_light": "#fdf6e3",
-    "surface_light": "#eee8d5",
-    "text_light": "#657b83",
-    "border_light": "#93a1a1",
-}
-
-THEME_CONFIG = SOLARIZED_THEME_CONFIG
+"""Centralized status definitions and general configuration."""
 
 STATUS_BADGES = {
     "seed": ("&#127793; Seed", "status-seed"),
