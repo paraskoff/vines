@@ -40,3 +40,4 @@ python vines.py --input ./notes --output ./dist --serve --port 8000
 - `-s`, `--serve`: Start a local HTTP development server
 - `-w`, `--watch`: Watch the notes directory for continuous file changes and auto-rebuild
 - `-p`, `--port`: Port number for the local development server (default: `8000`)
+- `-t`, `--theme`: Theme name (check [available themes](src/vines/themes/THEMES.md))
