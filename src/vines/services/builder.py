@@ -50,7 +50,7 @@ class WikiBuilder:
             if metadata.get("draft") is True or metadata.get("published") is False:
                 continue
 
-            title = metadata.get("title", md_path.stem.replace("-", " ").title())
+            title = str(metadata.get("title", md_path.stem.replace("-", " ").title()))
             tags = extract_tags(metadata, body)
             html_body, toc_html, plain_snippet = parse_markdown_to_html(body)
 

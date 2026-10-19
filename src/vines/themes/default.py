@@ -1,7 +1,7 @@
 # Default Theme
 
 THEME_CONFIG = {
-    "font_family": 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    "font_family": '"Maple Mono", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     "accent_color": "#2b9380",      # Ocean Mist Teal (balanced, versatile primary accent)
     "accent_hover": "#227566",      # Deep Jade Teal
     "link_color": "#3b8a73",        # Evergreen Sage Wikilink
